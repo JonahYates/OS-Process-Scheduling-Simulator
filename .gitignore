@@ -1,0 +1,6 @@
+# Untracking simulation executable
+simulation
+
+# Untracking images
+*.png
+imgs/*.png
