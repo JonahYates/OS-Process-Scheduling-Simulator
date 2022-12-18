@@ -8,14 +8,14 @@ from matplotlib import projections
 from os import getcwd
 
 # input sources & output destinations
-input = ["data/data1.csv","data/data2.csv","data/data4.csv","data/data8.csv","data/data12.csv","data/data16.csv"]
+input = ["data/data1.csv","data/data2.csv","data/data4.csv","data/data8.csv","data/data16.csv","data/data32.csv"]
 
 output = ["imgs/graph1-0.png","imgs/graph1-1.png","imgs/graph1-2.png","imgs/graph1-3.png","imgs/graph1-4.png",
           "imgs/graph2-0.png","imgs/graph2-1.png","imgs/graph2-2.png","imgs/graph2-3.png","imgs/graph2-4.png",
           "imgs/graph4-0.png","imgs/graph4-1.png","imgs/graph4-2.png","imgs/graph4-3.png","imgs/graph4-4.png",
           "imgs/graph8-0.png","imgs/graph8-1.png","imgs/graph8-2.png","imgs/graph8-3.png","imgs/graph8-4.png",
-          "imgs/graph12-0.png","imgs/graph12-1.png","imgs/graph12-2.png","imgs/graph12-3.png","imgs/graph12-4.png",
-          "imgs/graph16-0.png","imgs/graph16-1.png","imgs/graph16-2.png","imgs/graph16-3.png","imgs/graph16-4.png",]
+          "imgs/graph16-0.png","imgs/graph16-1.png","imgs/graph16-2.png","imgs/graph16-3.png","imgs/graph16-4.png",
+          "imgs/graph32-0.png","imgs/graph32-1.png","imgs/graph32-2.png","imgs/graph32-3.png","imgs/graph32-4.png",]
 outputNum = 0
 
 for x in range (6):         # values 0-5

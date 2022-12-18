@@ -22,8 +22,8 @@ int main()
         "data/data2.csv",
         "data/data4.csv",
         "data/data8.csv",
-        "data/data12.csv",
-        "data/data16.csv"};
+        "data/data16.csv",
+        "data/data32.csv"};
 
     const short C_NUM_ALGORITHMS = 5;
     

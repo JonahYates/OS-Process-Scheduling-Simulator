@@ -12,4 +12,5 @@ The following commands may need to be run, if applicable, to install the needed 
 pip install pandas
 pip install numpy
 pip install matplotlib
+choco install make
 ```
