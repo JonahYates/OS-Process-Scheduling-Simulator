@@ -1,6 +1,5 @@
 # Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
-# Purpose: To manipulate the data output by the c++ process simulation
-# program into graphs that can be viewed visually.
+# Purpose: To process the C++ simulation output into graphs.
 
 import numpy as np
 import pandas as pd
@@ -34,6 +33,9 @@ for x in range (6):         # values 0-5
         starvations = data[(data['Algorithm'] == y)]
         starvations = starvations['Number of Starvations']
 
+        for x in starvations:
+            starvations[x] = round((starvations[x]*100/numProc[x]),3)
+
         # creating the graph
         axis = plt.axes(projection = '3d')
         axis.plot_trisurf(numProc, procLen, starvations, cmap=plt.cm.Spectral, linewidth=0.2)
@@ -43,8 +45,8 @@ for x in range (6):         # values 0-5
         axis.set_ylabel("")
         axis.set_xticks([])
         axis.set_yticks([])
-        axis.set_zlabel("Number of Starvations", fontsize = 12)
-        axis.set_zticks([0,512,1024,1536,2048])
+        axis.set_zlabel("Percentage Starved (%)", fontsize = 12)
+        axis.set_zticks([0,25,50,75,100])
         axis.view_init(15, -170)
 
         # saving the image ouput to the imgs folder

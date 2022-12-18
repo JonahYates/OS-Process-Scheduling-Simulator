@@ -1,6 +1,5 @@
 // Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
-// File: scheduler.cpp
-// Purpose: implementation of the various scheduling algorithms tested
+// Purpose: implementation of the various scheduling algorithms
 
 #include "scheduler.h"
 

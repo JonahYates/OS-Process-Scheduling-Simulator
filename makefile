@@ -1,4 +1,4 @@
-CXX = fg++
+CXX = g++
 FLAGS = -W -Wall -Wextra
 
 .PHONY: default run

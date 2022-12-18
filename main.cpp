@@ -1,7 +1,8 @@
 // Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
 // File: main.cpp
-/* Purpose: simulates process generation, scheduling, and
-   outputting the starvation count of each to a file */
+// Purpose: simulates process scheduling algorithms by generating
+//          randomized processes, scheduling them, and then outputting
+//          starvation count metrics to the designated file.
 
 #include <iostream>
 #include <fstream>
@@ -16,29 +17,39 @@ using namespace std;
 int main()
 {
     /* Constant Declaration Section */
+    const vector<string> C_OUTPUT_FILES = {
+        "data/data1.csv",
+        "data/data2.csv",
+        "data/data4.csv",
+        "data/data8.csv",
+        "data/data12.csv",
+        "data/data16.csv"};
+
     const short C_NUM_ALGORITHMS = 5;
     
-    const short C_MAX_CORES = 16;           // 16 cores will be our 'max' since its currently considered very high-end
+    const short C_MAX_CORES = 16;               // 16 cores will be our 'max' since its currently considered 'high-end' for personal computers
     
-    const int C_MAX_NUM_PROCESS = 2048;     // max number of processes in processlist
-    const int C_MAX_PROCESS_LEN = 512;      // max length that a process in procList can have 
+    const short C_MAX_NUM_PROCESS = 2048;       // maximum number of processes needing to be ran
+    const short C_MAX_PROCESS_LEN = 512;        // maximum time-units an individual process can be 
     
-    const int C_MAX_NUM_IOEVENTS = 12;
-    const int C_MEAN_NUM_IOEVENTS = -1;
-    const int C_STDDEV_IOEVENTS = 5;
+    const short C_MAX_NUM_IOEVENTS = 12;
+    const short C_MEAN_NUM_IOEVENTS = -1;
+    const short C_STDDEV_IOEVENTS = 5;
     
-    const int C_MEAN_IOEVENT_LEN = 15;
-    const int C_STDDEV_IOEVENT_LEN = 25;
+    const short C_MEAN_IOEVENT_LEN = 15;
+    const short C_STDDEV_IOEVENT_LEN = 25;
 
     /* Variable Declaration Section */
     default_random_engine generator;
-    vector<Process> processList;            // list of all processes needing to be ran.
+    vector<Process> processList;
     ofstream fout;
+    
     long pTime;                             // simulated computer time
     int numStarvations;                     // number of processes that starved (Not finished in 3*reqTime)
     int stdDevProcLen;                      // standard deviation for number of processes
     int randNum;
     int qSize = 0;                          // current size of queue for RR
+    int outputPos = 0;
 
     generator.seed(time(NULL));             // seeding distribution generator
     srand(time(NULL));                      // seeding random number generator
@@ -47,14 +58,13 @@ int main()
         LC_AvgNumProcesses  - number of processes needing to be run
         LC_AvgProcessLen    - average length of processes            */ 
 
-    fout.open("data/data.csv");
-    fout<<"Number_of_Cores,Number of Processes,Average Process Length,Algorithm,Number of Starvations"<<endl;
-    for (short LC_cores = 1; LC_cores <= C_MAX_CORES; LC_cores*=2) /* doubling number of cores - CPUs usually have an even number */
-        for (int LC_numProcesses = 4; LC_numProcesses <= C_MAX_NUM_PROCESS; LC_numProcesses*=2)
-            for (int LC_processLen = 4; LC_processLen <= C_MAX_PROCESS_LEN; LC_processLen*=2)
-            {
-                for (int LC_algorithm = 0; LC_algorithm < C_NUM_ALGORITHMS; LC_algorithm++)
-                {
+    /* doubling number of cores - CPUs usually have an even number */
+    for (short LC_cores = 1; LC_cores <= C_MAX_CORES; LC_cores*=2) {
+        fout.open(C_OUTPUT_FILES[outputPos]);
+        fout<<"Number_of_Cores,Number of Processes,Average Process Length,Algorithm,Number of Starvations"<<endl;
+        for (int LC_numProcesses = 4; LC_numProcesses <= C_MAX_NUM_PROCESS; LC_numProcesses*=2) {
+            for (int LC_processLen = 4; LC_processLen <= C_MAX_PROCESS_LEN; LC_processLen*=2) {
+                for (int LC_algorithm = 0; LC_algorithm < C_NUM_ALGORITHMS; LC_algorithm++) {
                     // clearing process list, re-creating random processes and resetting pTime & numStarvations 
                     processList.clear();
                     pTime = 1;
@@ -151,7 +161,9 @@ int main()
                 }
                 cout<<endl;
             }
-
-    fout.close();
+        }
+        fout.close();
+        outputPos++;
+    }
     return 0;
 }

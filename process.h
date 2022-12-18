@@ -1,6 +1,6 @@
 // Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
 // File: process.h
-// Purpose: header file for the user-defined process data-type
+// Purpose: header file for the defined process data-type
 
 #ifndef PROCESS_H
 #define PROCESS_H
@@ -19,11 +19,20 @@ struct IOEvent
     long duration;   // The duration that the process will be Blocked by this IOEvent
 };
 
-enum State {notArrived, ready, processing, blocked, starved, done}; // Possible states of a process
+enum State {notArrived, ready, processing, blocked, starved, done};
 
 struct Process {
-    Process() : state(notArrived), id(-1), readyTime(-1), doneTime(-1), reqTime(0), processingTime(0), waitTime(0),
-                qPos(-1), slice(0), ioBlocked(false), isSelected(false){}
+    Process() : state(notArrived),
+                id(-1),
+                readyTime(-1),
+                doneTime(-1),
+                reqTime(0),
+                processingTime(0),
+                waitTime(0),
+                qPos(-1),
+                slice(0),
+                ioBlocked(false),
+                isSelected(false){}
 
     State state;                // current process state
     
