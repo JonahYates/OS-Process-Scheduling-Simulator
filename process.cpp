@@ -1,6 +1,6 @@
 // Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
 // File: process.cpp
-// Purpose: 
+// Purpose: implementation of process data-type's methods
 
 #include "process.h"
 

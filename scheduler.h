@@ -1,6 +1,5 @@
 // Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
-// File: schedule.h
-// Purpose: header file for the various scheduling algorithms tested
+// Purpose: header file for the various scheduling algorithms
 
 #ifndef SCHEDULE_H
 #define SCHEDULE_H
