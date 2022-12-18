@@ -1,5 +1,4 @@
 # Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
-# File: graph.py
 # Purpose: To manipulate the data output by the c++ process simulation
 # program into graphs that can be viewed visually.
 
