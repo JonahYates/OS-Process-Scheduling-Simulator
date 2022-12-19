@@ -1,5 +1,4 @@
-# Untracking simulation executable
-simulation
+*.exe
 imgs/*.png
 data/data1.csv
 data/data2.csv
