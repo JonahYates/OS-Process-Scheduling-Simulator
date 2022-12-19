@@ -6,4 +6,4 @@ FLAGS = -W -Wall -Wextra
 default: simulate
 
 simulate:
-	${CXX} ${FLAGS} *.cpp -o simulation
+	${CXX} ${FLAGS} *.cpp -o simulation.exe

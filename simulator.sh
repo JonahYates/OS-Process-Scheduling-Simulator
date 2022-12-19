@@ -26,7 +26,7 @@ read proceed
 if [ ! $proceed -eq 1 ]; then
     exit
 fi
-./simulation
+./simulation.exe
 
 echo "Enter 1 to save a copy of the data, or anything else to not"
 read save
@@ -36,4 +36,4 @@ fi
 python3 graph.py
 
 # cleanup
-rm simulation
+rm simulation.exe
