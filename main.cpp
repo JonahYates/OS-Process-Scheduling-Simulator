@@ -9,6 +9,7 @@
 #include <random>
 #include <time.h>
 #include <cmath>
+#include <chrono>
 #include "process.h"
 #include "scheduler.h"
 
@@ -51,6 +52,7 @@ int main()
     int qSize = 0;                          // current size of queue for RR
     int outputPos = 0;
 
+    time_t start = time(0);
     generator.seed(time(NULL));             // seeding distribution generator
     srand(time(NULL));                      // seeding random number generator
 
@@ -148,9 +150,11 @@ int main()
                     }
                     
                     // Computing the number of processes that starved
-                    for (auto & proc : processList)
-                        if (proc.state == starved)
+                    for (auto & proc : processList) {
+                        if (proc.state == starved) {
                             numStarvations++;
+                        }
+                    }
                     
                     fout<<LC_cores<<","<<LC_numProcesses<<","<<LC_processLen<<","<<LC_algorithm<<","<<numStarvations<<endl;
                     cout<<"Cores: "<<LC_cores<<" #Proc: "<<LC_numProcesses<<" Avg Proc Len: "<<LC_processLen<<" Algo: "<<LC_algorithm<<" #Starvations: "<<numStarvations<<endl;
@@ -161,5 +165,13 @@ int main()
         fout.close();
         outputPos++;
     }
+
+    fout.open("time.txt");
+    time_t end = time(0);
+    char* s_dt = ctime(&start);
+    char* e_dt = ctime(&end);
+    fout<<s_dt<<endl;
+    fout<<e_dt<<endl;
+    fout.close();
     return 0;
 }
