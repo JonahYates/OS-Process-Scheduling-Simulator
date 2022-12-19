@@ -28,7 +28,7 @@ int main()
 
     const short C_NUM_ALGORITHMS = 5;
     
-    const short C_MAX_CORES = 16;               // 16 cores will be our 'max' since its currently considered 'high-end' for personal computers
+    const short C_MAX_CORES = 32;               // 32 cores will be our 'max' since its currently considered 'high-end' for personal computers
     
     const short C_MAX_NUM_PROCESS = 2048;       // maximum number of processes needing to be ran
     const short C_MAX_PROCESS_LEN = 512;        // maximum time-units an individual process can be 
@@ -99,7 +99,9 @@ int main()
                         // Generating a random number of I/O events of random lengths
                         for (int j = 0, numEvents = toBeAdded.ioEvents.capacity(); j < numEvents; j++) {
                             randNum = static_cast<int>(ceil(DIST_IOEventLen(generator)));
-                            if (randNum >= 1) { /* Only adding events if the number of events is >= 1 */
+                            
+                            /* Only adding events if the number of events is >= 1 */
+                            if (randNum >= 1) {
                                 IOEvent toBeAddedIO;
                                 toBeAddedIO.duration = randNum;
                                 toBeAddedIO.time = rand()%toBeAdded.reqTime;
