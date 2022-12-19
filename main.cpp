@@ -78,8 +78,7 @@ int main()
 
                     // generating the random processes
                     processList.reserve(LC_numProcesses);
-                    for (int i = 0; i < LC_numProcesses; i++)
-                    {
+                    for (int i = 0; i < LC_numProcesses; i++) {
                         Process toBeAdded;
                         toBeAdded.id = i;
 
@@ -96,11 +95,9 @@ int main()
                         randNum < 0 ? toBeAdded.ioEvents.reserve(0) : toBeAdded.ioEvents.reserve(randNum % C_MAX_NUM_IOEVENTS+1);
                         
                         // Generating a random number of I/O events of random lengths
-                        for (int j = 0, numEvents = toBeAdded.ioEvents.capacity(); j < numEvents; j++)
-                        {
+                        for (int j = 0, numEvents = toBeAdded.ioEvents.capacity(); j < numEvents; j++) {
                             randNum = static_cast<int>(ceil(DIST_IOEventLen(generator)));
-                            if (randNum >= 1) /* Only adding events if the number of events is >= 1 */
-                            {
+                            if (randNum >= 1) { /* Only adding events if the number of events is >= 1 */
                                 IOEvent toBeAddedIO;
                                 toBeAddedIO.duration = randNum;
                                 toBeAddedIO.time = rand()%toBeAdded.reqTime;
@@ -115,18 +112,17 @@ int main()
                     vector<int> selections = {};
                     vector<int> selections_copy = {};
                     qSize = 0;
-                    while(!allProcessesComplete(processList))
-                    {
+                    while(!allProcessesComplete(processList)) {
                         // copying the previous selections into selections_copy
                         selections_copy = {};
-                        for (auto & pos : selections)
+                        for (auto & pos : selections) {
                             selections_copy.push_back(pos);
+                        }
                         
                         unblock(processList);                                       // unblock a process
                         readyUp(pTime, processList);                                // notArrived to ready
 
-                        switch (LC_algorithm) /* switch for algorithm tested */
-                        {
+                        switch (LC_algorithm) { /* switch for algorithm tested */
                             case 0:
                                 selections = scheduler_FIFO(processList, selections_copy, LC_cores);
                                 break;

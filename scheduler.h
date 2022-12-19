@@ -7,20 +7,31 @@
 #include <vector>
 #include "process.h"
 
-// First-In First-Out implementation                    - NON-PREEMPTIVE
-vector<int> scheduler_FIFO(vector<Process> & procList, vector<int> & old_Selections, const int processLimit);
+// First-In First-Out implementation                        - NON-PREEMPTIVE
+vector<int> scheduler_FIFO( vector<Process> & procList,
+                            vector<int> & prev_Selections,
+                            const int processLimit);
 
-// Round Robin implementation                           - PREEMPTIVE
-vector<int> scheduler_RR(vector<Process> & procList, vector<int> & old_Selections, const int processLimit,
-                         const int slice_len, int & qSize);
+// Round Robin implementation                               - PREEMPTIVE
+vector<int> scheduler_RR(   vector<Process> & procList,
+                            vector<int> & prev_Selections,
+                            const int processLimit,
+                            const int slice_len,
+                            int & qSize);
 
-// Shortest Process Next implementation                 - NON-PREEMPTIVE
-vector<int> scheduler_SPN(vector<Process> & procList, vector<int> & old_Selections, const int processLimit);
+// Shortest Process Next implementation                     - NON-PREEMPTIVE
+vector<int> scheduler_SPN(  vector<Process> & procList,
+                            vector<int> & prev_Selections,
+                            const int processLimit);
 
-// Shortest Remaining Time implementation               - PREEMPTIVE
-vector<int> scheduler_SRT(vector<Process> & procList, vector<int> & old_Selections, const int processLimit);
+// Shortest Remaining Time implementation                   - PREEMPTIVE
+vector<int> scheduler_SRT(  vector<Process> & procList,
+                            vector<int> & prev_Selections,
+                            const int processLimit);
 
-// Highest Response Ratio Next implementation           - NON-PREEMPTIVE
-vector<int> scheduler_HRRN(vector<Process> & procList, vector<int> & old_Selections, const int processLimit);
+// Highest Response Ratio Next implementation               - NON-PREEMPTIVE
+vector<int> scheduler_HRRN( vector<Process> & procList,
+                            vector<int> & prev_Selections,
+                            const int processLimit);
 
 #endif
