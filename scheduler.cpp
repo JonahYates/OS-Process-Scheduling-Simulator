@@ -33,7 +33,7 @@ vector<int> scheduler_FIFO(vector<Process> & procList, vector<int> & prev_Select
 }
 
 vector<int> scheduler_RR(vector<Process> & procList, vector<int> & old_Selections, const int processLimit,
-                         const int slice_len, int & qSize)
+                         const int quanta, int & qSize)
 {
     /* Variable Declaration Section */
     vector<int> new_Selections = {};
@@ -41,10 +41,10 @@ vector<int> scheduler_RR(vector<Process> & procList, vector<int> & old_Selection
     int qFront;
     bool lowest_found;                  // whether we've found the lowest qPos
 
-    // Adding to the queue any processes in the process list that are ready and not
-    // already in the queue and removing any starved or done processes from the queue
+    /*  Adding to the queue any processes in the process list
+    that are ready and removing any starved or done processes */
     for (auto & proc : procList) {
-        if(proc.state == ready && proc.qPos == -1) {
+        if (proc.state == ready && proc.qPos == -1) {
             proc.qPos = qSize;
             qSize++;
         }
@@ -53,10 +53,10 @@ vector<int> scheduler_RR(vector<Process> & procList, vector<int> & old_Selection
         }
     }
     
-    // Marking all previously selected processes as ready and moving any that have
-    // used up all of their time slice to the back of the queue
+    /*  Marking all previously selected processes as ready and moving any that have
+        used up all of their time slice to the back of the queue */
     for (auto & prevSel : old_Selections) {
-        if (procList[prevSel].slice == slice_len && procList[prevSel].state != done) {
+        if (procList[prevSel].slice == quanta && procList[prevSel].state != done) {
             procList[prevSel].state = ready;
             procList[prevSel].slice = 0;
             procList[prevSel].qPos = qSize;

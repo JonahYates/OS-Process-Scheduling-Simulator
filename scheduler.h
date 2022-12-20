@@ -16,7 +16,7 @@ vector<int> scheduler_FIFO( vector<Process> & procList,
 vector<int> scheduler_RR(   vector<Process> & procList,
                             vector<int> & prev_Selections,
                             const int processLimit,
-                            const int slice_len,
+                            const int quanta,
                             int & qSize);
 
 // Shortest Process Next implementation                     - NON-PREEMPTIVE

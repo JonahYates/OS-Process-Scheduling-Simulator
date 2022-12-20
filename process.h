@@ -44,14 +44,14 @@ struct Process {
     long processingTime;        // time spent running a process so far
     long waitTime;              // time process has spent in ready state
 
+    vector<IOEvent> ioEvents;
+    IOEvent currentEvent;
+    
     // RR vars
     int qPos;                   // position in the current queue the process is at
     short slice;                // how far through the time slice the process is
     bool ioBlocked;             // if proc got blocked from an io event this last time unit
     bool isSelected;            // if the proc is selected
-
-    vector<IOEvent> ioEvents;
-    IOEvent currentEvent;
 };
 
 // unblocks any processes that have just completed their io interrupts

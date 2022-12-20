@@ -10,6 +10,7 @@
 #include <time.h>
 #include <cmath>
 #include <chrono>
+#include <thread>
 #include "process.h"
 #include "scheduler.h"
 
@@ -46,10 +47,11 @@ int main()
     ofstream fout;
     
     long pTime;                             // simulated computer time
-    int numStarvations;                     // number of processes that starved (Not finished in 3*reqTime)
+    int numStarvations;                     // number of processes that starved (Not finished in 4*reqTime + numIOEvents*meanIOLen)
     int stdDevProcLen;                      // standard deviation for number of processes
     int randNum;
     int qSize = 0;                          // current size of queue for RR
+    short quantum;                          // time quantum for RR
     int outputPos = 0;
 
     time_t start = time(0);
@@ -131,7 +133,10 @@ int main()
                                 selections = scheduler_FIFO(processList, selections_copy, LC_cores);
                                 break;
                             case 1:
-                                selections = scheduler_RR(processList, selections_copy, LC_cores, ceil(sqrt(1.0*LC_processLen)), qSize);
+                                /*  processLen/quantum
+                                    4/2 8/3 16/4 32/6, 64/8, 128/11, 256/16, 512/23 */
+                                quantum = ceil(sqrt(LC_processLen));
+                                selections = scheduler_RR(processList, selections_copy, LC_cores, quantum, qSize);
                                 break;
                             case 2:
                                 selections = scheduler_SPN(processList, selections_copy, LC_cores);
@@ -157,9 +162,8 @@ int main()
                             numStarvations++;
                         }
                     }
-                    
                     fout<<LC_cores<<","<<LC_numProcesses<<","<<LC_processLen<<","<<LC_algorithm<<","<<numStarvations<<endl;
-                    cout<<"Cores: "<<LC_cores<<" #Proc: "<<LC_numProcesses<<" Avg Proc Len: "<<LC_processLen<<" Algo: "<<LC_algorithm<<" #Starvations: "<<numStarvations<<endl;
+                    cout<<"Iteration Finished #Cores/#Proc/AvgLen/Algo/#Starves "<<LC_cores<<"/"<<LC_numProcesses<<"/"<<LC_processLen<<"/"<<LC_algorithm<<"/"<<numStarvations<<endl;
                 }
                 cout<<endl;
             }
