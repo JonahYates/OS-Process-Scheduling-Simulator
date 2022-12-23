@@ -21,7 +21,8 @@ vector<int> scheduler_RR(   vector<Process> & procList,
 // Shortest Process Next implementation                     - NON-PREEMPTIVE
 vector<int> scheduler_SPN(  vector<Process> & procList,
                             vector<int> & prev_Selections,
-                            const int processLimit);
+                            const int processLimit,
+                            const bool createQueue);
 
 // Shortest Remaining Time implementation                   - PREEMPTIVE
 vector<int> scheduler_SRT(  vector<Process> & procList,

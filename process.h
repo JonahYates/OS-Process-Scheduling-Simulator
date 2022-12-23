@@ -45,8 +45,9 @@ struct Process {
     vector<IOEvent> ioEvents;
     IOEvent currentEvent;
     
+    bool inQueue;               // whether the process is in the queue for RR and SPN
+
     // RR vars
-    bool inQueue;               // whether the process is in the queue
     short slice;                // how much of the quanta the process has used
 };
 

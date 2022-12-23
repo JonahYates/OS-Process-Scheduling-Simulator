@@ -9,7 +9,6 @@
 #include <random>
 #include <time.h>
 #include <cmath>
-#include <chrono>
 #include <thread>
 #include "process.h"
 #include "scheduler.h"
@@ -54,9 +53,6 @@ int main()
     short quanta;                           // time quanta for RR
     int outputPos = 0;
 
-    time_t start = time(0);
-    char* s_dt = ctime(&start);
-    char* e_dt;
     generator.seed(time(NULL));             // seeding distribution generator
     srand(time(NULL));                      // seeding random number generator
 
@@ -120,6 +116,7 @@ int main()
                     vector<int> selections = {};
                     vector<int> prev_Selections = {};
                     scheduler_RR(processList, LC_cores, quanta, true);
+                    
                     while(!allProcessesComplete(processList)) {
                         // copying the previous selections into selections_copy
                         prev_Selections = {};
@@ -141,7 +138,7 @@ int main()
                                 selections = scheduler_RR(processList, LC_cores, quanta, false);
                                 break;
                             case 2:
-                                selections = scheduler_SPN(processList, prev_Selections, LC_cores);
+                                selections = scheduler_SPN(processList, prev_Selections, LC_cores, false);
                                 break;
                             case 3:
                                 selections = scheduler_SRT(processList, prev_Selections, LC_cores);
@@ -174,11 +171,5 @@ int main()
         outputPos++;
     }
 
-    fout.open("time.txt");
-    time_t end = time(0);
-    e_dt = ctime(&end);
-    fout<<s_dt<<endl;
-    fout<<e_dt<<endl;
-    fout.close();
     return 0;
 }
