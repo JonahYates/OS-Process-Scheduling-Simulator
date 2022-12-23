@@ -1,10 +1,13 @@
 #!/bin/bash
-# Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
-# Purpose: bash script to fully run the simulation. Will create
-# necessary files, compile and run program and then perform cleanup
+#   Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
+#   Purpose: bash script to run the simulation. Will create the necessary
+#            files, compile and run program and then perform cleanup
 
 # compiling/building necessary files
 clear
+if [ -f simulation.exe ]; then
+    rm simulation.exe
+fi
 if [ ! -d data ]; then
     mkdir data
 fi

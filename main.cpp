@@ -1,8 +1,8 @@
-// Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
-// File: main.cpp
-// Purpose: simulates process scheduling algorithms by generating
-//          randomized processes, scheduling them, and then outputting
-//          starvation count metrics to the designated file.
+/*  Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
+    File: main.cpp
+    Purpose: simulates process scheduling algorithms by generating
+            randomized processes, scheduling them, and then outputting
+            starvation count metrics to the designated file. */
 
 #include <iostream>
 #include <fstream>
@@ -48,13 +48,15 @@ int main()
     
     long pTime;                             // simulated computer time
     int numStarvations;                     // number of processes that starved (Not finished in 4*reqTime + numIOEvents*meanIOLen)
+
     int stdDevProcLen;                      // standard deviation for number of processes
     int randNum;
-    int qSize = 0;                          // current size of queue for RR
-    short quantum;                          // time quantum for RR
+    short quanta;                           // time quanta for RR
     int outputPos = 0;
 
     time_t start = time(0);
+    char* s_dt = ctime(&start);
+    char* e_dt;
     generator.seed(time(NULL));             // seeding distribution generator
     srand(time(NULL));                      // seeding random number generator
 
@@ -116,13 +118,13 @@ int main()
                     }
                     
                     vector<int> selections = {};
-                    vector<int> selections_copy = {};
-                    qSize = 0;
+                    vector<int> prev_Selections = {};
+                    scheduler_RR(processList, LC_cores, quanta, true);
                     while(!allProcessesComplete(processList)) {
                         // copying the previous selections into selections_copy
-                        selections_copy = {};
+                        prev_Selections = {};
                         for (auto & pos : selections) {
-                            selections_copy.push_back(pos);
+                            prev_Selections.push_back(pos);
                         }
                         
                         unblock(processList);                                       // unblock a process
@@ -130,22 +132,22 @@ int main()
 
                         switch (LC_algorithm) { /* switch for algorithm tested */
                             case 0:
-                                selections = scheduler_FIFO(processList, selections_copy, LC_cores);
+                                selections = scheduler_FIFO(processList, prev_Selections, LC_cores);
                                 break;
                             case 1:
-                                /*  processLen/quantum
-                                    4/2 8/3 16/4 32/6, 64/8, 128/11, 256/16, 512/23 */
-                                quantum = ceil(sqrt(LC_processLen));
-                                selections = scheduler_RR(processList, selections_copy, LC_cores, quantum, qSize);
+                                /*  processLen/quanta
+                                    4/3, 8/4, 16/7, 32/11, 64/16, 128/26, 256/41, 512/64 */
+                                quanta = ceil(pow(LC_processLen, 2.0/3));
+                                selections = scheduler_RR(processList, LC_cores, quanta, false);
                                 break;
                             case 2:
-                                selections = scheduler_SPN(processList, selections_copy, LC_cores);
+                                selections = scheduler_SPN(processList, prev_Selections, LC_cores);
                                 break;
                             case 3:
-                                selections = scheduler_SRT(processList, selections_copy, LC_cores);
+                                selections = scheduler_SRT(processList, prev_Selections, LC_cores);
                                 break;
                             case 4:
-                                selections = scheduler_HRRN(processList, selections_copy, LC_cores);
+                                selections = scheduler_HRRN(processList, prev_Selections, LC_cores);
                                 break;
                         }
 
@@ -174,8 +176,7 @@ int main()
 
     fout.open("time.txt");
     time_t end = time(0);
-    char* s_dt = ctime(&start);
-    char* e_dt = ctime(&end);
+    e_dt = ctime(&end);
     fout<<s_dt<<endl;
     fout<<e_dt<<endl;
     fout.close();

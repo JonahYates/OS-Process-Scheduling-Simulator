@@ -1,5 +1,5 @@
-// Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
-// Purpose: implementation of the various scheduling algorithms
+/*  Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
+    Purpose: implementation of the various scheduling algorithms and helpers */
 
 #include "scheduler.h"
 
@@ -8,7 +8,7 @@ vector<int> scheduler_FIFO(vector<Process> & procList, vector<int> & prev_Select
     int numProcGrabbed = 0;
 
     // Continue processing running processes (NON-PREEMPTIVE ALGORITHM)
-    for (int i = 0, numProc = prev_Selections.size(); (i < numProc) && (numProcGrabbed < processLimit); i++) {
+    for (int i = 0, numProc = prev_Selections.size(); i < numProc; i++) {
         if (procList[prev_Selections[i]].state == processing) {
             new_Selections.push_back(prev_Selections[i]);
             numProcGrabbed++;
@@ -21,7 +21,7 @@ vector<int> scheduler_FIFO(vector<Process> & procList, vector<int> & prev_Select
     // Grabbing from pool of ready processes next if processLimit not yet met
     for (int i = 0, numProc = procList.size(); i < numProc; i++) {
         if (procList[i].state == ready) {
-            new_Selections.push_back(i); // selecting the i-th process from processList for processing
+            new_Selections.push_back(i); // selecting the i-th process from procList for processing
             procList[i].state = processing;
             numProcGrabbed++;
             if (numProcGrabbed == processLimit) {
@@ -29,122 +29,60 @@ vector<int> scheduler_FIFO(vector<Process> & procList, vector<int> & prev_Select
             }
         }
     }
+
     return new_Selections;
 }
 
-vector<int> scheduler_RR(vector<Process> & procList, vector<int> & old_Selections, const int processLimit,
-                         const int quanta, int & qSize)
-{
-    /* Variable Declaration Section */
+vector<int> scheduler_RR(vector<Process> & procList, const int processLimit, const int quanta, const bool reset)
+{    
+    /*  Variable Declaration Section */
     vector<int> new_Selections = {};
+    static vector<int> queue = {};
     int numProcGrabbed = 0;
-    int qFront;
-    bool lowest_found;                  // whether we've found the lowest qPos
 
-    /*  Adding to the queue any processes in the process list
-    that are ready and removing any starved or done processes */
-    for (auto & proc : procList) {
-        if (proc.state == ready && proc.qPos == -1) {
-            proc.qPos = qSize;
-            qSize++;
-        }
-        if ((proc.state == starved || proc.state == done) && proc.qPos != -1) {
-            proc.qPos = -1;
-        }
-    }
-    
-    /*  Marking all previously selected processes as ready and moving any that have
-        used up all of their time slice to the back of the queue */
-    for (auto & prevSel : old_Selections) {
-        if (procList[prevSel].slice == quanta && procList[prevSel].state != done) {
-            procList[prevSel].state = ready;
-            procList[prevSel].slice = 0;
-            procList[prevSel].qPos = qSize;
-            qSize++;
-        } else if (procList[prevSel].state == processing && !procList[prevSel].ioBlocked) {
-            numProcGrabbed++;
-            procList[prevSel].slice++;
-            procList[prevSel].isSelected = true;
-            new_Selections.push_back(prevSel);
-            if (numProcGrabbed == processLimit) {
-                // Resetting flags of grabbed processes before returning selections
-                for (auto & newSel : new_Selections) {
-                    procList[newSel].isSelected = false;
-                }
-                return new_Selections;
-            }   
-        }
-    }
-
-    // determining the front of the queue
-    qFront = qSize;
-    for (auto & proc : procList) {
-        if (proc.qPos != -1 && proc.qPos < qFront) {
-            qFront = proc.qPos;
-        }
-    }
-    
-    if (qFront == qSize) {
+    /*  Clearing the queue for a new simulation */
+    if (reset) {
+        queue.clear();
         return new_Selections;
     }
-
-    // each iteration of the for loop, one process, with the lowest qPos is
-    // grabbed and added to the selections if not already selected
-    for (int b = numProcGrabbed; b < processLimit; b++) {
-        lowest_found = false;
-        
-        // finds the lowest qPos not already grabbed
-        for (int lowest_num = qFront; (!lowest_found && lowest_num <= qSize); lowest_num++) {   // increasing lowest_num
-            for (int a = 0, numProc = procList.size(); (a < numProc && !lowest_found); a++) {   // checking if any in procLis match lowest_num
-                if (!(procList[a].isSelected) && (procList[a].qPos == lowest_num)) {
-                    //check front/lowest qPos to see if it is blocked
-                    if(!procList[a].isSelected && (procList[a].state == blocked || procList[a].ioBlocked)) {
-                        if (procList[a].ioBlocked) {
-                            procList[a].ioBlocked = false;
-                        }
-                        procList[a].isSelected = true;
-                        procList[a].qPos = qSize;
-                        qSize++;
-                        procList[a].slice = 0;
-                    } else {
-                        numProcGrabbed++;
-                        procList[a].state = processing;
-                        procList[a].slice++;
-                        procList[a].isSelected = true;
-                        lowest_found = true;
-                        new_Selections.push_back(a);
-                        if (numProcGrabbed == processLimit) {
-                            // Resetting flags of grabbed processes before returning selections
-                            for (auto & newSel : new_Selections) {
-                                procList[newSel].isSelected = false;
-                            }
-
-                            // Shifting down qPos of all processes to increase efficiency
-                            if (qFront >= processLimit) {
-                                for (auto & proc : procList) {
-                                    proc.qPos %= qFront;
-                                }
-                                qSize %= qFront;
-                            }
-
-                            return new_Selections;
-                        }
-                    }
+ 
+    /*  Adding to the queue any processes in the process list
+        that are ready and removing any starved, done, or blocked processes */
+    for (int i = 0, numProc = procList.size(); i < numProc; i++) {
+        if (procList[i].state == ready && !procList[i].inQueue) {
+            queue.push_back(i);
+            procList[i].inQueue = true;
+        } else if (procList[i].inQueue && (procList[i].state == starved || procList[i].state == done || procList[i].state == blocked)) {
+            // removing the process i in procList from the queue
+            for (int removePos = 0; removePos < static_cast<int>(queue.size()); removePos++) {
+                if (queue[removePos] == i) {
+                    queue.erase(queue.begin()+removePos);
                 }
             }
+            procList[i].inQueue = false;
+        }
+    }
+    
+    /*  Moving any process that has used up its quanta (a previous selection) to the back of the queue */
+    for (int i = 0; i < static_cast<int>(queue.size()); i++) {
+        if (procList[queue[i]].slice == quanta && procList[queue[i]].state == processing) {
+            queue.push_back(queue[i]);
+            procList[queue[i]].state = ready;
+            procList[queue[i]].slice = 0;
+            queue.erase(queue.begin()+i);
         }
     }
 
-    // Resetting the isSelected flag
-    for (auto & proc : procList)
-        proc.isSelected = false;
-    
-    if (qFront >= processLimit)
-    {
-        for (auto & proc : procList)
-            proc.qPos %= qFront;
-        qSize %= qFront;
+    /*  selecting the first n (processLimit) processes in the queue */
+    for (int i = 0, queueSize = queue.size(); (i < queueSize) && (numProcGrabbed < processLimit); i++) {
+        new_Selections.push_back(queue[i]);
+        procList[queue[i]].state = processing;
+        numProcGrabbed++;
+        if (numProcGrabbed == processLimit) {
+            return new_Selections;
+        }
     }
+
     return new_Selections;
 }
 
@@ -313,3 +251,5 @@ vector<int> scheduler_HRRN(vector<Process> & procList, vector<int> & old_Selecti
     }
     return new_Selections;
 }
+
+/* Helper functions */

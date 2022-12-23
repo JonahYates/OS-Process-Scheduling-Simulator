@@ -1,4 +1,4 @@
-.vscode/
+.vscode
 *.exe
 imgs/*.png
 data/data1.csv

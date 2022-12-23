@@ -1,5 +1,5 @@
-# Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
-# Purpose: To process the C++ simulation output into graphs.
+#   Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
+#   Purpose: To process the C++ simulation output into graphs.
 
 import numpy as np
 import pandas as pd

@@ -49,6 +49,7 @@ void increment(vector<Process> & processList, const vector<int> & selection)
     // Iterating through currently selected/running processes and increasing their processorTime
     for (auto & sel : selection) {
         processList[sel].processingTime++;
+        processList[sel].slice++;
     }
 
     // Iterating through unselected ready processes and increasing their waitTime
@@ -59,11 +60,11 @@ void increment(vector<Process> & processList, const vector<int> & selection)
     }
 }
 
-void finisher(const long time, vector<Process> & processList, vector<int> selection)
+void finisher(const long time, vector<Process> & processList, vector<int> selections)
 {
-    // Checking the currently selected/running processes for whether processesTime
-    // meets reqTime. Marking them as finished and updating doneTime if so.
-    for (auto & sel : selection) {
+    /*  Checking the currently selected/running processes for whether processesTime
+        meets reqTime. Marking them as finished and updating doneTime if so. */
+    for (auto & sel : selections) {
         if (processList[sel].processingTime == processList[sel].reqTime) {
             processList[sel].state = done;
             processList[sel].doneTime = time;
@@ -86,7 +87,6 @@ void ioInterrupts(vector<Process> & processList, vector<int> & selection)
                 processList[sel].currentEvent = processList[sel].ioEvents[j];
                 processList[sel].currentEvent.duration--;
                 processList[sel].state = blocked;
-                processList[sel].ioBlocked = true;
             }
         }
     }

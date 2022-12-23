@@ -1,6 +1,6 @@
-// Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
-// File: process.h
-// Purpose: header file for the defined process data-type
+/*  Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
+    File: process.h
+    Purpose: header file for the defined process data-type */
 
 #ifndef PROCESS_H
 #define PROCESS_H
@@ -29,10 +29,8 @@ struct Process {
                 reqTime(0),
                 processingTime(0),
                 waitTime(0),
-                qPos(-1),
-                slice(0),
-                ioBlocked(false),
-                isSelected(false){}
+                inQueue(false),
+                slice(0){}
 
     State state;                // current process state
     
@@ -48,10 +46,8 @@ struct Process {
     IOEvent currentEvent;
     
     // RR vars
-    int qPos;                   // position in the current queue the process is at
-    short slice;                // how far through the time slice the process is
-    bool ioBlocked;             // if proc got blocked from an io event this last time unit
-    bool isSelected;            // if the proc is selected
+    bool inQueue;               // whether the process is in the queue
+    short slice;                // how much of the quanta the process has used
 };
 
 // unblocks any processes that have just completed their io interrupts
@@ -64,7 +60,7 @@ void readyUp(const long time, vector<Process> & processList);
 void increment(vector<Process> & processList, const vector<int> & selection);
 
 // checks whether any processes have been completed
-void finisher(const long time, vector<Process> & processList, vector<int> selection);
+void finisher(const long time, vector<Process> & processList, vector<int> selections);
 
 // blocks any processes with interrupts slated to occur
 void ioInterrupts(vector<Process> & processList, vector<int> & selection);

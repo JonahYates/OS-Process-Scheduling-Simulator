@@ -1,5 +1,5 @@
-// Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
-// Purpose: header file for the various scheduling algorithms
+/*  Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
+    Purpose: header file for the various scheduling algorithms */
 
 #ifndef SCHEDULE_H
 #define SCHEDULE_H
@@ -14,10 +14,9 @@ vector<int> scheduler_FIFO( vector<Process> & procList,
 
 // Round Robin implementation                               - PREEMPTIVE
 vector<int> scheduler_RR(   vector<Process> & procList,
-                            vector<int> & prev_Selections,
                             const int processLimit,
                             const int quanta,
-                            int & qSize);
+                            const bool reset);
 
 // Shortest Process Next implementation                     - NON-PREEMPTIVE
 vector<int> scheduler_SPN(  vector<Process> & procList,
