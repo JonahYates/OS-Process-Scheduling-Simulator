@@ -116,6 +116,7 @@ int main()
                     vector<int> selections = {};
                     vector<int> prev_Selections = {};
                     scheduler_RR(processList, LC_cores, quanta, true);
+                    
                     while(!allProcessesComplete(processList)) {
                         // copying the previous selections into selections_copy
                         prev_Selections = {};
@@ -137,7 +138,7 @@ int main()
                                 selections = scheduler_RR(processList, LC_cores, quanta, false);
                                 break;
                             case 2:
-                                selections = scheduler_SPN(processList, prev_Selections, LC_cores);
+                                selections = scheduler_SPN(processList, prev_Selections, LC_cores, false);
                                 break;
                             case 3:
                                 selections = scheduler_SRT(processList, prev_Selections, LC_cores);

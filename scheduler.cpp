@@ -3,7 +3,8 @@
 
 #include "scheduler.h"
 
-vector<int> scheduler_FIFO(vector<Process> & procList, vector<int> & prev_Selections, const int processLimit){
+vector<int> scheduler_FIFO(vector<Process> & procList, vector<int> & prev_Selections, const int processLimit) {
+    static vector<int> queue = {};
     vector<int> new_Selections = {};
     int numProcGrabbed = 0;
 
@@ -33,11 +34,9 @@ vector<int> scheduler_FIFO(vector<Process> & procList, vector<int> & prev_Select
     return new_Selections;
 }
 
-vector<int> scheduler_RR(vector<Process> & procList, const int processLimit, const int quanta, const bool reset)
-{    
-    /*  Variable Declaration Section */
-    vector<int> new_Selections = {};
+vector<int> scheduler_RR(vector<Process> & procList, const int processLimit, const int quanta, const bool reset) {    
     static vector<int> queue = {};
+    vector<int> new_Selections = {};
     int numProcGrabbed = 0;
 
     /*  Clearing the queue for a new simulation */
@@ -86,13 +85,24 @@ vector<int> scheduler_RR(vector<Process> & procList, const int processLimit, con
     return new_Selections;
 }
 
-vector<int> scheduler_SPN(vector<Process> & procList, vector<int> & old_Selections, const int processLimit)
-{
-    /* Variable Declaration Section */
+vector<int> scheduler_SPN(vector<Process> & procList, vector<int> & old_Selections, const int processLimit, const bool createQueue) {
+    static vector<int> queue = {};
     vector<int> new_Selections = {};
     int numProcGrabbed = 0;
     int spPos;                          // position of shortest process in procList
     bool alreadyInSel;
+
+    //one forth to one third starved
+
+    // creating the queue of shortest processes
+    if (createQueue) {
+        /* position of the shortest processes in processList */
+        spPos = -1;
+
+        // just copy procList and call a sort by req time
+
+    }
+    /* now just iterate through queue and grab the first n ready processes */
 
     // Continue processing running processes (NON-PREEMPTIVE ALGORITHM)
     for (int i = 0, numProc = old_Selections.size(); i < numProc && numProcGrabbed < processLimit; i++) {
@@ -139,9 +149,7 @@ vector<int> scheduler_SPN(vector<Process> & procList, vector<int> & old_Selectio
     return new_Selections;
 }
 
-vector<int> scheduler_SRT(vector<Process> & procList, vector<int> & old_Selections, const int processLimit)
-{
-    /* Variable Declaration Section */
+vector<int> scheduler_SRT(vector<Process> & procList, vector<int> & old_Selections, const int processLimit) {
     vector<int> new_Selections = {};
     int numProcGrabbed = 0;
     int srtPos;                     // position of shortest remaining time in procList
@@ -194,9 +202,7 @@ vector<int> scheduler_SRT(vector<Process> & procList, vector<int> & old_Selectio
     return new_Selections;
 }
 
-vector<int> scheduler_HRRN(vector<Process> & procList, vector<int> & old_Selections, const int processLimit)
-{
-    /* Variable Declaration Section */
+vector<int> scheduler_HRRN(vector<Process> & procList, vector<int> & old_Selections, const int processLimit) {
     vector<int> new_Selections = {};
     int numProcGrabbed = 0;
     float lrHRRN, inspHRRN;         // hrrn ratio values of current largest hrrn and the one we're inspecting
