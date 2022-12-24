@@ -29,7 +29,8 @@ read proceed
 if [ ! $proceed -eq 1 ]; then
     exit
 fi
-./simulation.exe
+clear
+time ./simulation.exe
 
 echo "Enter 1 to save a copy of the data, or anything else to not"
 read save
