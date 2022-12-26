@@ -1,9 +1,4 @@
 .vscode
 *.exe
 imgs/*.png
-data/data1.csv
-data/data2.csv
-data/data4.csv
-data/data8.csv
-data/data16.csv
-data/data32.csv
+data/*.csv

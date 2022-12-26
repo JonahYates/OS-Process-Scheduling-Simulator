@@ -1,11 +1,9 @@
 // Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
-// File: process.cpp
 // Purpose: implementation of process data-type's methods
 
 #include "process.h"
 
-bool allProcessesComplete(vector<Process> & processVector)
-{
+bool allProcessesComplete(vector<Process> & processVector) {
     for (auto & proc : processVector) {
         if (proc.state != done && proc.state != starved) {
             return false;
@@ -14,8 +12,7 @@ bool allProcessesComplete(vector<Process> & processVector)
     return true;
 }
 
-void unblock(vector<Process> & processList)
-{
+void unblock(vector<Process> & processList) {
     for (auto & proc : processList) {
         if (proc.state == blocked) {
             /*  Unblocking all processes that have been IO blocked
@@ -34,8 +31,7 @@ void unblock(vector<Process> & processList)
     }
 }
 
-void readyUp(const long time, vector<Process> & processList)
-{
+void readyUp(const long time, vector<Process> & processList) {
     // Reading all processes in the new state and have met their start time
     for (auto & proc : processList) {
         if (proc.state == notArrived && proc.readyTime == time) {
@@ -44,8 +40,7 @@ void readyUp(const long time, vector<Process> & processList)
     }
 }
 
-void increment(vector<Process> & processList, const vector<int> & selection)
-{
+void increment(vector<Process> & processList, const vector<int> & selection) {
     // Iterating through currently selected/running processes and increasing their processorTime
     for (auto & sel : selection) {
         processList[sel].processingTime++;
@@ -60,8 +55,7 @@ void increment(vector<Process> & processList, const vector<int> & selection)
     }
 }
 
-void finisher(const long time, vector<Process> & processList, vector<int> selections)
-{
+void finisher(const long time, vector<Process> & processList, vector<int> selections) {
     /*  Checking the currently selected/running processes for whether processesTime
         meets reqTime. Marking them as finished and updating doneTime if so. */
     for (auto & sel : selections) {
@@ -72,8 +66,7 @@ void finisher(const long time, vector<Process> & processList, vector<int> select
     }
 }
 
-void ioInterrupts(vector<Process> & processList, vector<int> & selection)
-{
+void ioInterrupts(vector<Process> & processList, vector<int> & selection) {
     // Searching all currently running processes for IOEvents.
     for (auto & sel : selection) {
         // Searching all IOEvents to see if one is to start at the current time
@@ -92,8 +85,7 @@ void ioInterrupts(vector<Process> & processList, vector<int> & selection)
     }
 }
 
-void checkStarvation(const long time, vector<Process> & processList, const int meanIOLen)
-{
+void checkStarvation(const long time, vector<Process> & processList, const int meanIOLen) {
     /* Variable Declaration Section */
     long expectedEndTime;
 

@@ -63,7 +63,7 @@ int main()
     /* doubling number of cores - CPUs usually have an even number */
     for (short LC_cores = 1; LC_cores <= C_MAX_CORES; LC_cores*=2) {
         fout.open(C_OUTPUT_FILES[outputPos]);
-        fout<<"Number_of_Cores,Number of Processes,Average Process Length,Algorithm,Number of Starvations"<<endl;
+        fout<<"Number_of_Cores,Number_of_Processes,Avg_Process_Length,Algorithm,Starvations"<<endl;
         for (int LC_numProcesses = 4; LC_numProcesses <= C_MAX_NUM_PROCESS; LC_numProcesses*=2) {
             for (int LC_processLen = 4; LC_processLen <= C_MAX_PROCESS_LEN; LC_processLen*=2) {
                 for (int LC_algorithm = 0; LC_algorithm < C_NUM_ALGORITHMS; LC_algorithm++) {
@@ -115,10 +115,27 @@ int main()
                     
                     vector<int> selections = {};
                     vector<int> prev_Selections = {};
-                    scheduler_RR(processList, LC_cores, quanta, true);
+
+                    switch (LC_algorithm) { /* switch for algorithm tested prep */
+                        case 0: // FIFO
+
+                            break;
+                        case 1: // Round Robin
+                            scheduler_RR(processList, LC_cores, quanta, true);
+                            break;
+                        case 2: // Shortest Process Next
+                            scheduler_SPN(processList, prev_Selections, LC_cores, true);
+                            break;
+                        case 3: // Shortest Remaining Time
+                        
+                            break;
+                        case 4: // Highest Response Ratio Next
+                        
+                            break;
+                    }
                     
                     while(!allProcessesComplete(processList)) {
-                        // copying the previous selections into selections_copy
+                        /* copying the previous selections into selections_copy */
                         prev_Selections = {};
                         for (auto & pos : selections) {
                             prev_Selections.push_back(pos);

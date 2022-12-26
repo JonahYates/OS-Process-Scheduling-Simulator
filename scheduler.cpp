@@ -2,6 +2,7 @@
     Purpose: implementation of the various scheduling algorithms and helpers */
 
 #include "scheduler.h"
+#include <algorithm>
 
 vector<int> scheduler_FIFO(vector<Process> & procList, vector<int> & prev_Selections, const int processLimit) {
     static vector<int> queue = {};
@@ -42,110 +43,84 @@ vector<int> scheduler_RR(vector<Process> & procList, const int processLimit, con
     /*  Clearing the queue for a new simulation */
     if (reset) {
         queue.clear();
-        return new_Selections;
-    }
- 
-    /*  Adding to the queue any processes in the process list
-        that are ready and removing any starved, done, or blocked processes */
-    for (int i = 0, numProc = procList.size(); i < numProc; i++) {
-        if (procList[i].state == ready && !procList[i].inQueue) {
-            queue.push_back(i);
-            procList[i].inQueue = true;
-        } else if (procList[i].inQueue && (procList[i].state == starved || procList[i].state == done || procList[i].state == blocked)) {
-            // removing the process i in procList from the queue
-            for (int removePos = 0; removePos < static_cast<int>(queue.size()); removePos++) {
-                if (queue[removePos] == i) {
-                    queue.erase(queue.begin()+removePos);
+    } else {
+        /*  Adding to the queue any processes in the process list
+            that are ready and removing any starved, done, or blocked processes */
+        for (int i = 0, numProc = procList.size(); i < numProc; i++) {
+            if (procList[i].state == ready && !procList[i].inQueue) {
+                queue.push_back(i);
+                procList[i].inQueue = true;
+            } else if (procList[i].inQueue && (procList[i].state == starved || procList[i].state == done || procList[i].state == blocked)) {
+                // removing the process i in procList from the queue
+                for (int removePos = 0; removePos < static_cast<int>(queue.size()); removePos++) {
+                    if (queue[removePos] == i) {
+                        queue.erase(queue.begin()+removePos);
+                    }
                 }
+                procList[i].inQueue = false;
             }
-            procList[i].inQueue = false;
         }
-    }
-    
-    /*  Moving any process that has used up its quanta (a previous selection) to the back of the queue */
-    for (int i = 0; i < static_cast<int>(queue.size()); i++) {
-        if (procList[queue[i]].slice == quanta && procList[queue[i]].state == processing) {
-            queue.push_back(queue[i]);
-            procList[queue[i]].state = ready;
-            procList[queue[i]].slice = 0;
-            queue.erase(queue.begin()+i);
+        
+        /*  Moving any process that has used up its quanta (a previous selection) to the back of the queue */
+        for (int i = 0; i < static_cast<int>(queue.size()); i++) {
+            if (procList[queue[i]].slice == quanta && procList[queue[i]].state == processing) {
+                queue.push_back(queue[i]);
+                procList[queue[i]].state = ready;
+                procList[queue[i]].slice = 0;
+                queue.erase(queue.begin()+i);
+            }
         }
-    }
 
-    /*  selecting the first n (processLimit) processes in the queue */
-    for (int i = 0, queueSize = queue.size(); (i < queueSize) && (numProcGrabbed < processLimit); i++) {
-        new_Selections.push_back(queue[i]);
-        procList[queue[i]].state = processing;
-        numProcGrabbed++;
-        if (numProcGrabbed == processLimit) {
-            return new_Selections;
-        }
-    }
-
-    return new_Selections;
-}
-
-vector<int> scheduler_SPN(vector<Process> & procList, vector<int> & old_Selections, const int processLimit, const bool createQueue) {
-    static vector<int> queue = {};
-    vector<int> new_Selections = {};
-    int numProcGrabbed = 0;
-    int spPos;                          // position of shortest process in procList
-    bool alreadyInSel;
-
-    //one forth to one third starved
-
-    // creating the queue of shortest processes
-    if (createQueue) {
-        /* position of the shortest processes in processList */
-        spPos = -1;
-
-        // just copy procList and call a sort by req time
-
-    }
-    /* now just iterate through queue and grab the first n ready processes */
-
-    // Continue processing running processes (NON-PREEMPTIVE ALGORITHM)
-    for (int i = 0, numProc = old_Selections.size(); i < numProc && numProcGrabbed < processLimit; i++) {
-        if (procList[old_Selections[i]].state == processing) {
-            new_Selections.push_back(old_Selections[i]);
+        /*  selecting the first n (processLimit) processes in the queue */
+        for (int i = 0, queueSize = queue.size(); (i < queueSize) && (numProcGrabbed < processLimit); i++) {
+            new_Selections.push_back(queue[i]);
+            procList[queue[i]].state = processing;
             numProcGrabbed++;
             if (numProcGrabbed == processLimit) {
                 return new_Selections;
             }
         }
     }
-    
-    // Grabbing the next shortest processes
-    for (int i = numProcGrabbed; i < processLimit; i++) {
-        spPos = -1;
 
-        // determining the position of the shortest process
-        for (int j = 0, numProc = procList.size(); j < numProc; j++) {
-            if (procList[j].state == ready) {
-                if (spPos == -1) {
-                    spPos = j;
-                } else if (procList[spPos].reqTime > procList[j].reqTime) {   
-                    alreadyInSel = false;
-                    for (auto & newlySel : new_Selections) {
-                        if (newlySel == j) {
-                            alreadyInSel = true;
-                        }
-                    }
-                    if (!alreadyInSel) {
-                        spPos = j;
-                    }
+    return new_Selections;
+}
+
+vector<int> scheduler_SPN(vector<Process> & procList, vector<int> & old_Selections, const int processLimit, const bool sortProcList) {
+    vector<int> new_Selections = {};
+    int numProcGrabbed = 0;
+
+    /*one forth to one third starved*/
+
+    // sorting procList by requiredTime
+    if (sortProcList) {
+        sort(procList.begin(), procList.end(), [] (const Process & p1, const Process & p2) {
+            return p1.reqTime < p2.reqTime;
+        });
+    } else {
+        // Continue processing running processes (NON-PREEMPTIVE ALGORITHM)
+        for (int i = 0, numProc = old_Selections.size(); i < numProc; i++) {
+            if (procList[old_Selections[i]].state == processing) {
+                new_Selections.push_back(old_Selections[i]);
+                numProcGrabbed++;
+                if (numProcGrabbed == processLimit) {
+                    return new_Selections;
                 }
             }
         }
-        if (spPos != -1) {
-            numProcGrabbed++;
-            procList[spPos].state = processing;
-            new_Selections.push_back(spPos);
-        }
-        if (numProcGrabbed == processLimit) {
-            return new_Selections;
+
+        /*  selecting the first n (processLimit) processes */
+        for (int i = 0, numProc = procList.size(); i < numProc; i++) {
+            if (procList[i].state == ready) {
+                procList[i].state = processing;
+                new_Selections.push_back(i);
+                numProcGrabbed++;
+                if (numProcGrabbed == processLimit) {
+                    return new_Selections;
+                }
+            }
         }
     }
+    
     return new_Selections;
 }
 
@@ -257,5 +232,3 @@ vector<int> scheduler_HRRN(vector<Process> & procList, vector<int> & old_Selecti
     }
     return new_Selections;
 }
-
-/* Helper functions */

@@ -9,31 +9,29 @@ from os import getcwd
 
 # input sources & output destinations
 input = ["data/data1.csv","data/data2.csv","data/data4.csv","data/data8.csv","data/data16.csv","data/data32.csv"]
-
 output = ["imgs/graph1-0.png","imgs/graph1-1.png","imgs/graph1-2.png","imgs/graph1-3.png","imgs/graph1-4.png",
           "imgs/graph2-0.png","imgs/graph2-1.png","imgs/graph2-2.png","imgs/graph2-3.png","imgs/graph2-4.png",
           "imgs/graph4-0.png","imgs/graph4-1.png","imgs/graph4-2.png","imgs/graph4-3.png","imgs/graph4-4.png",
           "imgs/graph8-0.png","imgs/graph8-1.png","imgs/graph8-2.png","imgs/graph8-3.png","imgs/graph8-4.png",
           "imgs/graph16-0.png","imgs/graph16-1.png","imgs/graph16-2.png","imgs/graph16-3.png","imgs/graph16-4.png",
           "imgs/graph32-0.png","imgs/graph32-1.png","imgs/graph32-2.png","imgs/graph32-3.png","imgs/graph32-4.png",]
-outputNum = 0
+outputPos = 0
 
-for x in range (6):         # values 0-5
-    for y in range (5):     # values 0-4
+for input_file in input:
+    for algo in range (5): # algo: scheduling algorithm used (values [0-4])
+        data = pd.read_csv(input_file, header = 0)
 
-        # getting the data
-        data = pd.read_csv(input[x], header = 0)
+        numProc = data[data['Algorithm'] == algo]
+        numProc = numProc['Number_of_Processes'].values.tolist()
 
-        numProc = data[data['Algorithm'] == y]
-        numProc = numProc['Number of Processes']
-
-        procLen = data[(data['Algorithm'] == y)]
-        procLen = procLen['Average Process Length']
+        procLen = data[data['Algorithm'] == algo]
+        procLen = procLen['Avg_Process_Length'].values.tolist()
         
-        starvations = data[(data['Algorithm'] == y)]
-        starvations = starvations['Number of Starvations']
+        starvations = data[data['Algorithm'] == algo]
+        starvations = starvations['Starvations'].values.tolist()
 
-        for x in starvations:
+        # converting number of starvations to a percentage starvations
+        for x in range(len(starvations)):
             starvations[x] = round((starvations[x]*100/numProc[x]),3)
 
         # creating the graph
@@ -50,7 +48,7 @@ for x in range (6):         # values 0-5
         axis.view_init(15, -170)
 
         # saving the image ouput to the imgs folder
-        plt.savefig(output[outputNum])
+        plt.savefig(output[outputPos])
         axis.set_zlabel("")
         axis.set_zticks([])
-        outputNum += 1
+        outputPos += 1

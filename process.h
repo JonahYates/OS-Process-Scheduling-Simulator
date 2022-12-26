@@ -1,5 +1,4 @@
 /*  Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
-    File: process.h
     Purpose: header file for the defined process data-type */
 
 #ifndef PROCESS_H
@@ -51,25 +50,13 @@ struct Process {
     short slice;                // how much of the quanta the process has used
 };
 
-// unblocks any processes that have just completed their io interrupts
-void unblock(vector<Process> & processList);
+void unblock(vector<Process> & processList);                                                // unblocks processes that have completed their io interrupt
+void readyUp(const long time, vector<Process> & processList);                               // updates the state to ready for all processes that have hit ready time
+void increment(vector<Process> & processList, const vector<int> & selection);               // increments processingTime for any selected/processing processes
+void finisher(const long time, vector<Process> & processList, vector<int> selections);      // updates the state to done for all processes that have fully processed
+void ioInterrupts(vector<Process> & processList, vector<int> & selection);                  // blocks any processes with interrupts slated to start
+void checkStarvation(const long time, vector<Process> & processList, const int meanIOLen);  // updates the state to starved for all processes that starved
 
-// ready-ups any processes that are ready to start
-void readyUp(const long time, vector<Process> & processList);
-
-// increments processingTime for any running processes
-void increment(vector<Process> & processList, const vector<int> & selection);
-
-// checks whether any processes have been completed
-void finisher(const long time, vector<Process> & processList, vector<int> selections);
-
-// blocks any processes with interrupts slated to occur
-void ioInterrupts(vector<Process> & processList, vector<int> & selection);
-
-// updates the state to starved for all processes that starved (not completed in 3*reqTime)
-void checkStarvation(const long time, vector<Process> & processList, const int meanIOLen);
-
-// returns a bool determining whether all processes have either starved or been completed
-bool allProcessesComplete(vector<Process> & processVector);
+bool allProcessesComplete(vector<Process> & processVector);                                 // returns whether all processes have either starved or been completed
 
 #endif
