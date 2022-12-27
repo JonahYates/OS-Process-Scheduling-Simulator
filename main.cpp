@@ -34,7 +34,7 @@ int main()
     const short C_MAX_PROCESS_LEN = 512;        // maximum time-units an individual process can be 
     
     const short C_MAX_NUM_IOEVENTS = 12;
-    const short C_MEAN_NUM_IOEVENTS = -1;
+    const short C_MEAN_NUM_IOEVENTS = -2;
     const short C_STDDEV_IOEVENTS = 5;
     
     const short C_MEAN_IOEVENT_LEN = 15;

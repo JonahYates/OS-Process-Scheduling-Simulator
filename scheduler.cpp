@@ -40,28 +40,29 @@ vector<int> scheduler_RR(vector<Process> & procList, const int processLimit, con
     vector<int> new_Selections = {};
     int numProcGrabbed = 0;
 
-    /*  Clearing the queue for a new simulation */
-    if (reset) {
+    if (reset) { // clearing the queue for a new simulation
         queue.clear();
     } else {
-        /*  Adding to the queue any processes in the process list
-            that are ready and removing any starved, done, or blocked processes */
-        for (int i = 0, numProc = procList.size(); i < numProc; i++) {
+        /*  Adding any ready process to the queue and removing any starved, done, or blocked processes */
+        for (int i = 0; i < static_cast<int>(procList.size()); i++) {
             if (procList[i].state == ready && !procList[i].inQueue) {
                 queue.push_back(i);
                 procList[i].inQueue = true;
             } else if (procList[i].inQueue && (procList[i].state == starved || procList[i].state == done || procList[i].state == blocked)) {
-                // removing the process i in procList from the queue
+                /*  removing the process i in procList from the queue
+                    QUEUE MANIPULATED: */
                 for (int removePos = 0; removePos < static_cast<int>(queue.size()); removePos++) {
                     if (queue[removePos] == i) {
                         queue.erase(queue.begin()+removePos);
+                        // investigate a potential break statement being added once its found bc wont it be unique?
                     }
                 }
                 procList[i].inQueue = false;
             }
         }
         
-        /*  Moving any process that has used up its quanta (a previous selection) to the back of the queue */
+        /*  Moving any previous selection that has used up its quanta to the back of the queue
+            QUEUE MANIPULATED: size of queue remains unchanged regardless of action taken */
         for (int i = 0; i < static_cast<int>(queue.size()); i++) {
             if (procList[queue[i]].slice == quanta && procList[queue[i]].state == processing) {
                 queue.push_back(queue[i]);
@@ -71,10 +72,11 @@ vector<int> scheduler_RR(vector<Process> & procList, const int processLimit, con
             }
         }
 
-        /*  selecting the first n (processLimit) processes in the queue */
-        for (int i = 0, queueSize = queue.size(); (i < queueSize) && (numProcGrabbed < processLimit); i++) {
-            new_Selections.push_back(queue[i]);
+        /*  selecting the first n (processLimit) processes in the queue
+            QUEUE NOT MANIPULATED: size does not change */
+        for (int i = 0; i < static_cast<int>(queue.size()) && (numProcGrabbed < processLimit); i++) {
             procList[queue[i]].state = processing;
+            new_Selections.push_back(queue[i]);
             numProcGrabbed++;
             if (numProcGrabbed == processLimit) {
                 return new_Selections;
