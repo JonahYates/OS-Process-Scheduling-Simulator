@@ -1,9 +1,9 @@
 CXX = g++
 FLAGS = -W -Wall -Wextra
 
-.PHONY: default run
+simulate: main.o process.o scheduler.o
+	${CXX} ${FLAGS} main.o process.o scheduler.o -o simulation.exe
 
-default: simulate
+process.o: process.h
 
-simulate:
-	${CXX} ${FLAGS} *.cpp -o simulation.exe
+scheduler.o: scheduler.h

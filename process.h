@@ -22,7 +22,7 @@ enum State {notArrived, ready, processing, blocked, starved, done};
 
 struct Process {
     Process() : state(notArrived),
-                id(-1),
+                pid(-1),
                 readyTime(-1),
                 doneTime(-1),
                 reqTime(0),
@@ -33,7 +33,7 @@ struct Process {
 
     State state;                // current process state
     
-    int id;                     // unique id (order of process creation) given to a process for identification
+    int pid;                    // unique id (order of process creation) given to a process for identification
 
     long readyTime;             // when a process should be ready
     long doneTime;              // time when the process enters done state

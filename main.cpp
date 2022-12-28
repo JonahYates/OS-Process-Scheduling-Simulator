@@ -29,7 +29,8 @@ int main()
     const short C_NUM_ALGORITHMS = 5;
     
     const short C_MAX_CORES = 32;               // 32 cores will be our 'max' since its currently considered 'high-end' for personal computers
-    
+    const short C_MIN_CORES = 1;
+
     const short C_MAX_NUM_PROCESS = 2048;       // maximum number of processes needing to be ran
     const short C_MAX_PROCESS_LEN = 512;        // maximum time-units an individual process can be 
     
@@ -61,7 +62,7 @@ int main()
         LC_AvgProcessLen    - average length of processes            */ 
 
     /* doubling number of cores - CPUs usually have an even number */
-    for (short LC_cores = 1; LC_cores <= C_MAX_CORES; LC_cores*=2) {
+    for (short LC_cores = C_MIN_CORES; LC_cores <= C_MAX_CORES; LC_cores*=2) {
         fout.open(C_OUTPUT_FILES[outputPos]);
         fout<<"Number_of_Cores,Number_of_Processes,Avg_Process_Length,Algorithm,Starvations"<<endl;
         for (int LC_numProcesses = 4; LC_numProcesses <= C_MAX_NUM_PROCESS; LC_numProcesses*=2) {
@@ -82,7 +83,7 @@ int main()
                     processList.reserve(LC_numProcesses);
                     for (int i = 0; i < LC_numProcesses; i++) {
                         Process toBeAdded;
-                        toBeAdded.id = i;
+                        toBeAdded.pid = i;
 
                         // generating random process length from normal distribution
                         randNum = ceil(DIST_processesLen(generator));
