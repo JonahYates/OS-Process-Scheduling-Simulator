@@ -1,33 +1,39 @@
 /*  Programmers: Drew Schulte, Jonah Yates, & Selorm Sosuh
-    Purpose: implementation of the various scheduling algorithms and helpers */
+    Purpose: implement the various scheduling algorithms */
 
 #include "scheduler.h"
 #include <algorithm>
 
-vector<int> scheduler_FIFO(vector<Process> & procList, vector<int> & prev_Selections, const int processLimit) {
-    static vector<int> queue = {};
+vector<int> scheduler_FIFO(vector<Process> & procList, vector<int> & prev_Selections, const int processLimit, const bool sortProcList) {
     vector<int> new_Selections = {};
-    int numProcGrabbed = 0;
+    short numProcGrabbed = 0;
 
-    // Continue processing running processes (NON-PREEMPTIVE ALGORITHM)
-    for (size_t i = 0; i < prev_Selections.size(); i++) {
-        if (procList[prev_Selections[i]].state == processing) {
-            new_Selections.push_back(prev_Selections[i]);
-            numProcGrabbed++;
-            if (numProcGrabbed == processLimit) {
-                return new_Selections;
+    if (sortProcList) { // Sorting procList by start time
+        sort(procList.begin(), procList.end(), [] (const Process & p1, const Process & p2) {
+            return p1.readyTime < p2.readyTime;
+        });
+    } else {
+        // Continue processing running processes (NON-PREEMPTIVE ALGORITHM)
+        for (auto & pos : prev_Selections) {
+            if (procList[pos].state == processing) {
+                new_Selections.push_back(pos);
+                numProcGrabbed++;
+                if (numProcGrabbed == processLimit) {
+                    return new_Selections;
+                }
             }
         }
-    }
-
-    // Grabbing from pool of ready processes next if processLimit not yet met
-    for (size_t i = 0; i < procList.size(); i++) {
-        if (procList[i].state == ready) {
-            new_Selections.push_back(i); // selecting the i-th process from procList for processing
-            numProcGrabbed++;
-            procList[i].state = processing;
-            if (numProcGrabbed == processLimit) {
-                return new_Selections;
+            
+        /*  grabbing up to processLimit ready processes with the lowest readyTime
+            LOOP INFO: procList size does not change */
+        for (int i = 0, numProc = procList.size(); i < numProc; i++) {
+            if (procList[i].state == ready) {
+                new_Selections.push_back(i);
+                numProcGrabbed++;
+                procList[i].state = processing;
+                if (numProcGrabbed == processLimit) {
+                    return new_Selections;
+                }
             }
         }
     }
@@ -35,24 +41,27 @@ vector<int> scheduler_FIFO(vector<Process> & procList, vector<int> & prev_Select
     return new_Selections;
 }
 
-vector<int> scheduler_RR(vector<Process> & procList, const int processLimit, const int quanta, const bool reset) {
+vector<int> scheduler_RR(vector<Process> & procList, const int processLimit, const int quanta, const bool clearQueue) {
     static vector<int> queue = {};
     vector<int> new_Selections = {};
-    int numProcGrabbed = 0;
+    short numProcGrabbed = 0;
 
-    if (reset) { // Clearing the queue for a new simulation
+    if (clearQueue) { // Clearing the queue for a new simulation
         queue.clear();
     } else {
-        // Adding any ready process to the queue and removing any starved, done, or blocked processes
-        for (size_t i = 0; i < procList.size(); i++) {
+
+        /*  adding any ready process to the queue and removing any starved, done, or blocked processes 
+            LOOP INFO: procList size does not change */
+        for (int i = 0, numProc = procList.size(); i < numProc; i++) {
             if (procList[i].state == ready && !procList[i].inQueue) {
                 queue.push_back(i);
                 procList[i].inQueue = true;
             } else if (procList[i].inQueue && (procList[i].state == starved || procList[i].state == done || procList[i].state == blocked)) {
+                
                 /*  removing the process i in procList from the queue via pid comparison 
                     QUEUE SIZE MANIPULATED: break out of loop after removal, no further traversal */
                 int removePid = procList[i].pid;
-                for (size_t removePos = 0; removePos < queue.size(); removePos++) {
+                for (int removePos = 0, queueSize = queue.size(); removePos < queueSize; removePos++) {
                     if (procList[queue[removePos]].pid == removePid) {
                         queue.erase(queue.begin()+removePos);
                         break;
@@ -63,8 +72,8 @@ vector<int> scheduler_RR(vector<Process> & procList, const int processLimit, con
         }
         
         /*  moving any previous selection that has used up its quanta to the back of the queue
-            QUEUE SIZE MANIPULATED: size remains constant regardless of action, no effect on traversal */
-        for (size_t i = 0; i < queue.size(); i++) {
+            QUEUE MANIPULATED: queue size does not change */
+        for (int i = 0, queueSize = queue.size(); i < queueSize; i++) {
             if (procList[queue[i]].slice == quanta && procList[queue[i]].state == processing) {
                 queue.push_back(queue[i]);
                 procList[queue[i]].state = ready;
@@ -73,12 +82,11 @@ vector<int> scheduler_RR(vector<Process> & procList, const int processLimit, con
             }
         }
 
-        /*  selecting the first n (processLimit) processes in the queue
-            QUEUE SIZE NOT MANIPULATED: no effect on traversal */
-        for (size_t i = 0; (i < queue.size() && numProcGrabbed < processLimit); i++) {
-            new_Selections.push_back(queue[i]);
+        // Selecting the first processLimit processes in the queue
+        for (auto & pos : queue) {
+            new_Selections.push_back(pos);
             numProcGrabbed++;
-            procList[queue[i]].state = processing;
+            procList[pos].state = processing;
             if (numProcGrabbed == processLimit) {
                 return new_Selections;
             }
@@ -90,18 +98,17 @@ vector<int> scheduler_RR(vector<Process> & procList, const int processLimit, con
 
 vector<int> scheduler_SPN(vector<Process> & procList, vector<int> & old_Selections, const int processLimit, const bool sortProcList) {
     vector<int> new_Selections = {};
-    int numProcGrabbed = 0;
+    short numProcGrabbed = 0;
 
-    // Sorting procList by requiredTime
-    if (sortProcList) {
+    if (sortProcList) { // Sorting procList by required time
         sort(procList.begin(), procList.end(), [] (const Process & p1, const Process & p2) {
             return p1.reqTime < p2.reqTime;
         });
     } else {
         // Continue processing running processes (NON-PREEMPTIVE ALGORITHM)
-        for (size_t i = 0; i < old_Selections.size(); i++) {
-            if (procList[old_Selections[i]].state == processing) {
-                new_Selections.push_back(old_Selections[i]);
+        for (auto & pos : old_Selections) {
+            if (procList[pos].state == processing) {
+                new_Selections.push_back(pos);
                 numProcGrabbed++;
                 if (numProcGrabbed == processLimit) {
                     return new_Selections;
@@ -109,8 +116,9 @@ vector<int> scheduler_SPN(vector<Process> & procList, vector<int> & old_Selectio
             }
         }
 
-        // Selecting the first n (processLimit) processes
-        for (size_t i = 0; i < procList.size(); i++) {
+        /*  selecting a max of processLimit processes
+            LOOP INFO: procList size does not change */
+        for (int i = 0, numProc = procList.size(); i < numProc; i++) {
             if (procList[i].state == ready) {
                 new_Selections.push_back(i);
                 numProcGrabbed++;
@@ -128,50 +136,44 @@ vector<int> scheduler_SPN(vector<Process> & procList, vector<int> & old_Selectio
 vector<int> scheduler_SRT(vector<Process> & procList, vector<int> & old_Selections, const int processLimit) {
     vector<int> new_Selections = {};
     int numProcGrabbed = 0;
-    int srtPos;                     // position of shortest remaining time in procList
-    bool alreadyInSel;
+    int srtPos;
 
     // Marking all previously processing processes as ready (PREEMPTIVE ALGORITHM)
     for (auto & pos : old_Selections) {
+        procList[pos].inQueue = false;
         if (procList[pos].state == processing) {
             procList[pos].state = ready;
         }
     }
 
-    /* computing the remaining time for every process in procList, selecting and
-       replacing the selections until we have processLimit (#) of shortest processes.
-       Tie-breaker criteria is SPN followed by FIFO procList order. */
-    for (int i = numProcGrabbed; i < processLimit; i++) {
+    /*  selecting at most processLimit processes with the least remaining time, disregarding whether
+        they were previously processing. Tie-breaker criteria is SPN, followed by procList order. */
+    for (int i = 0; i < processLimit; i++) {
         srtPos = -1;
 
-        // Determining the position of the shortest remaining time process
+        /*  determining the position of the shortest remaining time process
+            LOOP INFO: procList size does not change */
         for (int j = 0, numProc = procList.size(); j < numProc; j++) {
-            if (procList[j].state == ready)
-            {
-                if (srtPos == -1) {
-                    srtPos = j;
-                } else if ((procList[srtPos].reqTime - procList[srtPos].processingTime > procList[j].reqTime - procList[j].processingTime)
-                    || (procList[srtPos].reqTime - procList[srtPos].processingTime == procList[j].reqTime - procList[j].processingTime
-                        && procList[srtPos].reqTime > procList[j].reqTime)) 
-                {
-                    alreadyInSel = false;
-                    for (auto & newlySel : new_Selections) {
-                        if (newlySel == j) {
-                            alreadyInSel = true;
-                        }
-                    }
-                    if (!alreadyInSel) {
-                        srtPos = j;
-                    }
-                }
+            if (procList[j].state == ready
+                && !procList[j].inQueue
+                && (srtPos == -1
+                    || (procList[j].remTime < procList[srtPos].remTime
+                        || (procList[j].remTime == procList[srtPos].remTime
+                            && procList[j].reqTime < procList[srtPos].reqTime)))) {
+                srtPos = j;
             }
         }
+
         if (srtPos != -1) {
             new_Selections.push_back(srtPos);
             numProcGrabbed++;
             procList[srtPos].state = processing;
+            procList[srtPos].inQueue = true;
         }
-        if (numProcGrabbed == processLimit) {
+        
+        /*  returning the selections if we've grabbed processLimit
+            processes, or if there are no more possible selections */
+        if (numProcGrabbed == processLimit || srtPos == -1) {
             return new_Selections;
         }
     }
@@ -181,54 +183,54 @@ vector<int> scheduler_SRT(vector<Process> & procList, vector<int> & old_Selectio
 
 vector<int> scheduler_HRRN(vector<Process> & procList, vector<int> & old_Selections, const int processLimit) {
     vector<int> new_Selections = {};
-    int numProcGrabbed = 0;
-    float lrHRRN, inspHRRN;         // hrrn ratio values of current largest hrrn and the one we're inspecting
-    int lrPos;                      // position of largest ratio in procList
-    bool alreadyInSel;
+    short numProcGrabbed = 0;
+    int lrPos;
     
     // Continue processing running processes (NON-PREEMPTIVE ALGORITHM)
-    for (size_t i = 0; i < old_Selections.size(); i++) {
-        if (procList[old_Selections[i]].state == processing) {
-            new_Selections.push_back(old_Selections[i]);
+    for (auto & pos : old_Selections) {
+        procList[pos].inQueue = false;
+        if (procList[pos].state == processing) {
+            new_Selections.push_back(pos);
             numProcGrabbed++;
+            procList[pos].inQueue = true;
             if (numProcGrabbed == processLimit) {
                 return new_Selections;
             }
         }
     }
 
-    // Selecting the remaining number of processes with the highest hrrn
+    // Updating the hrrn ratio for all processes
+    for (auto & proc : procList) {
+        proc.hrrnRatio = (1.0*proc.waitTime + proc.remTime) / proc.remTime;
+    }
+
+    // Selecting at most processLimit processes with the largest HRRN ratio
     for (int i = numProcGrabbed; i < processLimit; i++) {
         lrPos = -1;
 
-        // Determining the position of the process with the largest ratio
+        /*  determining the position of the process with the largest ratio
+            LOOP INFO: procList size does not change */
         for (int j = 0, numProc = procList.size(); j < numProc; j++) {
             if (procList[j].state == ready) {
-                if (lrPos == -1) {
+                if (lrPos == -1
+                    && !procList[j].inQueue
+                    && (lrPos == -1
+                        || procList[j].hrrnRatio > procList[lrPos].hrrnRatio)) {
                     lrPos = j;
-                } else {
-                    lrHRRN = (1.0*procList[lrPos].waitTime + (procList[lrPos].reqTime - procList[lrPos].processingTime)) / (procList[lrPos].reqTime - procList[lrPos].processingTime);
-                    inspHRRN = (1.0*procList[j].waitTime + (procList[j].reqTime - procList[j].processingTime)) / (procList[j].reqTime - procList[j].processingTime);
-                    if (lrHRRN < inspHRRN) {   
-                        alreadyInSel = false;
-                        for (auto & newlySel : new_Selections) {
-                            if (newlySel == j) {
-                                alreadyInSel = true;
-                            }
-                        }
-                        if (!alreadyInSel) {
-                            lrPos = j;
-                        }
-                    }
                 }
             }
         }
+
         if (lrPos != -1) {
             new_Selections.push_back(lrPos);
             numProcGrabbed++;
             procList[lrPos].state = processing;
+            procList[lrPos].inQueue = true;
         }
-        if (numProcGrabbed == processLimit) {
+
+        /*  returning the selections if we've grabbed processLimit
+            processes, or if there are no more possible selections */
+        if (numProcGrabbed == processLimit || lrPos == -1) {
             return new_Selections;
         }
     }

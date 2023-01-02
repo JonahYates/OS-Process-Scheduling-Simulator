@@ -10,41 +10,53 @@
 #include <time.h>
 #include <cmath>
 #include <thread>
+#include <mutex>
 #include "process.h"
 #include "scheduler.h"
 
 using namespace std;
 
-int main()
-{
-    /* Constant Declaration Section */
-    const vector<string> C_OUTPUT_FILES = {
-        "data/data1.csv",
-        "data/data2.csv",
-        "data/data4.csv",
-        "data/data8.csv",
-        "data/data16.csv",
-        "data/data32.csv"};
+/* Global Constants */
+const vector<string> C_OUTPUT_FILES = {
+    "data/data1.csv",
+    "data/data2.csv",
+    "data/data4.csv",
+    "data/data8.csv",
+    "data/data16.csv",
+    "data/data32.csv"};
 
-    const short C_NUM_ALGORITHMS = 5;
-    
-    const short C_MAX_CORES = 32;               // 32 cores will be our 'max' since its currently considered 'high-end' for personal computers
-    const short C_MIN_CORES = 1;
+const short C_NUM_ALGORITHMS = 5;
 
-    const short C_MAX_NUM_PROCESS = 2048;       // maximum number of processes needing to be ran
-    const short C_MAX_PROCESS_LEN = 512;        // maximum time-units an individual process can be 
-    
-    const short C_MAX_NUM_IOEVENTS = 12;
-    const short C_MEAN_NUM_IOEVENTS = -2;
-    const short C_STDDEV_IOEVENTS = 5;
-    
-    const short C_MEAN_IOEVENT_LEN = 15;
-    const short C_STDDEV_IOEVENT_LEN = 25;
+const short C_MAX_CORES = 32;
+const short C_MIN_CORES = 1;
 
+    /*
+const vector<int> C_NUM_PROC_TESTING = {
+    4, 8, 16, 32, 64, 128, 256, 512, 768, 1024, 1280, 1536, 1792, 2048}
+
+const vector<int> C_PROC_LEN_TESTING = {
+    4, 8, 16, 32, 64, 128, 192, 256, 320, 384, 448, 512}
+*/
+
+const short C_MAX_NUM_PROCESS = 2048;       // maximum number of processes needing to be ran
+const short C_MAX_PROCESS_LEN = 512;        // maximum time-units an individual process can be 
+
+const short C_MAX_NUM_IOEVENTS = 12;
+const short C_MEAN_NUM_IOEVENTS = -2;
+const short C_STDDEV_IOEVENTS = 5;
+
+const short C_MEAN_IOEVENT_LEN = 15;
+const short C_STDDEV_IOEVENT_LEN = 25;
+
+/* Global Variables */
+mutex outputMutex;
+ofstream fout;
+
+int main() {
     /* Variable Declaration Section */
     default_random_engine generator;
     vector<Process> processList;
-    ofstream fout;
+    vector<thread> threadList;
     
     long pTime;                             // simulated computer time
     int numStarvations;                     // number of processes that starved (Not finished in 4*reqTime + numIOEvents*meanIOLen)
@@ -52,16 +64,15 @@ int main()
     int stdDevProcLen;                      // standard deviation for number of processes
     int randNum;
     short quanta;                           // time quanta for RR
-    int outputPos = 0;
+    short outputPos = 0;
 
     generator.seed(time(NULL));             // seeding distribution generator
     srand(time(NULL));                      // seeding random number generator
 
-    /*  LC_cores            - number of cores//processors available
-        LC_AvgNumProcesses  - number of processes needing to be run
-        LC_AvgProcessLen    - average length of processes            */ 
+    /*  LC_cores         - number of cores//processors available
+        LC_numProcesses  - number of processes needing to be run
+        LC_processLen    - average length of processes            */ 
 
-    /* doubling number of cores - CPUs usually have an even number */
     for (short LC_cores = C_MIN_CORES; LC_cores <= C_MAX_CORES; LC_cores*=2) {
         fout.open(C_OUTPUT_FILES[outputPos]);
         fout<<"Number_of_Cores,Number_of_Processes,Avg_Process_Length,Algorithm,Starvations"<<endl;
@@ -88,6 +99,7 @@ int main()
                         // generating random process length from normal distribution
                         randNum = ceil(DIST_processesLen(generator));
                         randNum < 0 ? toBeAdded.reqTime = 1 : toBeAdded.reqTime = randNum;
+                        randNum < 0 ? toBeAdded.remTime = 1 : toBeAdded.remTime = randNum;
 
                         // generating random process start time using regular rand
                         randNum = rand() % (LC_numProcesses*LC_processLen) + 1;
@@ -117,9 +129,9 @@ int main()
                     vector<int> selections = {};
                     vector<int> prev_Selections = {};
 
-                    switch (LC_algorithm) { /* switch for algorithm tested prep */
+                    switch (LC_algorithm) { // Switch for algorithm tested prep
                         case 0: // FIFO
-
+                            scheduler_FIFO(processList, prev_Selections, LC_cores, true);
                             break;
                         case 1: // Round Robin
                             scheduler_RR(processList, LC_cores, quanta, true);
@@ -127,27 +139,20 @@ int main()
                         case 2: // Shortest Process Next
                             scheduler_SPN(processList, prev_Selections, LC_cores, true);
                             break;
-                        case 3: // Shortest Remaining Time
-                        
-                            break;
-                        case 4: // Highest Response Ratio Next
-                        
-                            break;
                     }
                     
                     while(!allProcessesComplete(processList)) {
-                        /* copying the previous selections into selections_copy */
-                        prev_Selections = {};
+                        // Copying the previous selections into prev_Selections
+                        prev_Selections.clear();
                         for (auto & pos : selections) {
                             prev_Selections.push_back(pos);
                         }
                         
-                        unblock(processList);                                       // unblock a process
-                        readyUp(pTime, processList);                                // notArrived to ready
-
-                        switch (LC_algorithm) { /* switch for algorithm tested */
+                        unblock(processList);                                       // unblocking processes
+                        readyUp(pTime, processList);                                // changing states to ready
+                        switch (LC_algorithm) {                                     // Switching on tested algorithm
                             case 0:
-                                selections = scheduler_FIFO(processList, prev_Selections, LC_cores);
+                                selections = scheduler_FIFO(processList, prev_Selections, LC_cores, false);
                                 break;
                             case 1:
                                 /*  processLen/quanta
@@ -165,11 +170,10 @@ int main()
                                 selections = scheduler_HRRN(processList, prev_Selections, LC_cores);
                                 break;
                         }
-
-                        increment(processList, selections);                         // increment the processor time
-                        finisher(pTime, processList, selections);                   // check if done and mark as done
-                        ioInterrupts(processList, selections);                      // check for an ioevent
-                        checkStarvation(pTime, processList, C_MEAN_IOEVENT_LEN);    // checking if any processes starved
+                        increment(processList, selections);                         // Incrementing processing time
+                        finisher(pTime, processList, selections);                   // Marking if done
+                        ioInterrupts(processList, selections);                      // Blocking if ioEvent
+                        checkStarvation(pTime, processList, C_MEAN_IOEVENT_LEN);    // Checking if starved
                         pTime++;
                     }
                     
@@ -179,8 +183,10 @@ int main()
                             numStarvations++;
                         }
                     }
+                    outputMutex.lock();
                     fout<<LC_cores<<","<<LC_numProcesses<<","<<LC_processLen<<","<<LC_algorithm<<","<<numStarvations<<endl;
-                    cout<<"Iteration Finished #Cores/#Proc/AvgLen/Algo/#Starves "<<LC_cores<<"/"<<LC_numProcesses<<"/"<<LC_processLen<<"/"<<LC_algorithm<<"/"<<numStarvations<<endl;
+                    cout<<"Iteration Finished: #Cores/#Proc/AvgLen/Algo/#Starved "<<LC_cores<<"/"<<LC_numProcesses<<"/"<<LC_processLen<<"/"<<LC_algorithm<<"/"<<numStarvations<<endl;
+                    outputMutex.unlock();
                 }
                 cout<<endl;
             }

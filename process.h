@@ -26,10 +26,12 @@ struct Process {
                 readyTime(-1),
                 doneTime(-1),
                 reqTime(0),
+                remTime(0),
                 processingTime(0),
                 waitTime(0),
                 inQueue(false),
-                slice(0){}
+                slice(0),
+                hrrnRatio(0){}
 
     State state;                // current process state
     
@@ -37,17 +39,18 @@ struct Process {
 
     long readyTime;             // when a process should be ready
     long doneTime;              // time when the process enters done state
-    long reqTime;               // required amount of process time needed to mark a process as done    
+    long reqTime;               // required process time needed to mark a process as done
+    long remTime;               // remaining process time needed to mark a process as done
     long processingTime;        // time spent running a process so far
     long waitTime;              // time process has spent in ready state
 
     vector<IOEvent> ioEvents;
     IOEvent currentEvent;
     
-    bool inQueue;               // whether the process is in the queue for RR and SPN
+    bool inQueue;               // whether the process is in the queue for RR, SRT, & HRRN
 
-    // RR vars
-    short slice;                // how much of the quanta the process has used
+    short slice;                // RR-Var:   how much of the quanta the process has used
+    float hrrnRatio;            // HRRN-Var: response ratio for the process; (waitTime + remTime) / remTime
 };
 
 void unblock(vector<Process> & processList);                                                // unblocks processes that have completed their io interrupt

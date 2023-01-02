@@ -44,6 +44,7 @@ void increment(vector<Process> & processList, const vector<int> & selection) {
     // Iterating through currently selected/running processes and increasing their processorTime
     for (auto & sel : selection) {
         processList[sel].processingTime++;
+        processList[sel].remTime--;
         processList[sel].slice++;
     }
 
@@ -56,10 +57,10 @@ void increment(vector<Process> & processList, const vector<int> & selection) {
 }
 
 void finisher(const long time, vector<Process> & processList, vector<int> selections) {
-    /*  Checking the currently selected/running processes for whether processesTime
-        meets reqTime. Marking them as finished and updating doneTime if so. */
+    /*  checking the currently selected/running processes for whether remTime
+        is 0 and marking as finished and updating doneTime if so. */
     for (auto & sel : selections) {
-        if (processList[sel].processingTime == processList[sel].reqTime) {
+        if (processList[sel].remTime == 0) {
             processList[sel].state = done;
             processList[sel].doneTime = time;
         }
@@ -72,7 +73,7 @@ void ioInterrupts(vector<Process> & processList, vector<int> & selection) {
         // Searching all IOEvents to see if one is to start at the current time
         for (int j = 0, numIOEvents = (processList[sel].ioEvents).size(); j < numIOEvents; j++) {
             if (processList[sel].state == processing &&
-                (processList[sel].ioEvents[j]).time == processList[sel].processingTime)
+                (processList[sel].ioEvents[j]).time == processList[sel].processingTime)     // check this logic
             {
                 /*  If the j-th interrupt is slated to occur at the current processing instance
                     of time, then storing the interrupt in currentEvent and switch to blocked.
@@ -85,16 +86,16 @@ void ioInterrupts(vector<Process> & processList, vector<int> & selection) {
     }
 }
 
+// use waitTime variable for starvation check, waitTime = 4*proc.reqTime += ioEvents
 void checkStarvation(const long time, vector<Process> & processList, const int meanIOLen) {
-    /* Variable Declaration Section */
-    long expectedEndTime;
+    long expectedRunTime;
 
     for (auto & proc : processList) {
-        expectedEndTime = proc.readyTime + 4*proc.reqTime;
+        expectedRunTime = proc.readyTime + 4*proc.reqTime;
         if (proc.ioEvents.size() > 0) {
-            expectedEndTime += meanIOLen*proc.ioEvents.size();
+            expectedRunTime += meanIOLen*proc.ioEvents.size();
         }
-        if (proc.doneTime == -1 && time == expectedEndTime) {
+        if (proc.doneTime == -1 && time == expectedRunTime) {
             proc.state = starved;
         }
     }

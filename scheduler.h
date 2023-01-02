@@ -10,13 +10,14 @@
 // First-In First-Out implementation                        - NON-PREEMPTIVE
 vector<int> scheduler_FIFO( vector<Process> & procList,
                             vector<int> & prev_Selections,
-                            const int processLimit);
+                            const int processLimit,
+                            const bool sortProcList);
 
 // Round Robin implementation                               - PREEMPTIVE
 vector<int> scheduler_RR(   vector<Process> & procList,
                             const int processLimit,
                             const int quanta,
-                            const bool reset);
+                            const bool clearQueue);
 
 // Shortest Process Next implementation                     - NON-PREEMPTIVE
 vector<int> scheduler_SPN(  vector<Process> & procList,

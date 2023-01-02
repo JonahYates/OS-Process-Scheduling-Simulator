@@ -16,6 +16,8 @@ output = ["imgs/graph1-0.png","imgs/graph1-1.png","imgs/graph1-2.png","imgs/grap
           "imgs/graph16-0.png","imgs/graph16-1.png","imgs/graph16-2.png","imgs/graph16-3.png","imgs/graph16-4.png",
           "imgs/graph32-0.png","imgs/graph32-1.png","imgs/graph32-2.png","imgs/graph32-3.png","imgs/graph32-4.png",]
 outputPos = 0
+C_MAX_NUM_PROCESS = 2048
+C_MAX_PROCESS_LEN = 512
 
 for input_file in input:
     for algo in range (5): # algo: scheduling algorithm used (values [0-4])
@@ -39,16 +41,20 @@ for input_file in input:
         axis.plot_trisurf(numProc, procLen, starvations, cmap=plt.cm.Spectral, linewidth=0.2)
         
         # graph stylization
-        axis.set_xlabel("")
-        axis.set_ylabel("")
-        axis.set_xticks([])
-        axis.set_yticks([])
+        axis.set_xlabel("Number of Processes", fontsize = 12)
+        axis.set_ylabel("Avg. Process Length", fontsize = 12)
         axis.set_zlabel("Percentage Starved (%)", fontsize = 12)
+        axis.set_xticks([0, 512, 1024, 1536, C_MAX_NUM_PROCESS])
+        axis.set_yticks([0, 128, 256, 384, C_MAX_PROCESS_LEN])
         axis.set_zticks([0,25,50,75,100])
         axis.view_init(15, -170)
 
         # saving the image ouput to the imgs folder
         plt.savefig(output[outputPos])
+        axis.set_xlabel("")
+        axis.set_ylabel("")
         axis.set_zlabel("")
+        axis.set_xticks([])
+        axis.set_yticks([])
         axis.set_zticks([])
         outputPos += 1
